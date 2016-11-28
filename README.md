@@ -1,0 +1,2 @@
+# BootstrapSlider
+BootstrapSlider Aspectize integration
