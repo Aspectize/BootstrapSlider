@@ -3,11 +3,11 @@
 
 Aspectize.Extend("BootstrapSlider", {
 
-    Properties: { InitialValues: '0', V1: 0, V2: 0, MinValue: 0, MaxValue: 100, Step: 1, Orientation: 'horizontal', Enabled: true, Ticks: "", TickLabels: "" },
+    Properties: { InitialValues: '0', V1: 0, V2: 0, MinValue: 0, MaxValue: 100, Step: 1, Orientation: 'horizontal', Enabled: true, Ticks: "", TickLabels: "", Tooltip:'show' },
     Events: ['OnV1Changed', 'OnV2Changed'],
     Init: function (elem) {
 
-        var optionMap = { MinValue: 'min', MaxValue: 'max', Step: 'step', Orientation: 'orientation' };
+        var optionMap = { MinValue: 'min', MaxValue: 'max', Step: 'step', Orientation: 'orientation', Tooltip: 'tooltip' };
         var theSlider = null;
 
         var hasTwoValues = false;
@@ -90,8 +90,13 @@ Aspectize.Extend("BootstrapSlider", {
                 options.ticks_labels = sLabels.split(',');
             }
 
+            
             theSlider = new Slider(elem, options);
 
+            if (!Aspectize.UiExtensions.GetProperty(elem, 'Enabled')) {
+
+                theSlider.disable();
+            }
 
             theSlider.on('slideStop', function (x) {
 
@@ -170,7 +175,7 @@ Aspectize.Extend("BootstrapSlider", {
                                 theSlider.disable();
                             }
 
-                        } break;
+                        } break;                      
 
                         default: {
 
