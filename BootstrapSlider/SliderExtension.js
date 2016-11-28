@@ -3,7 +3,7 @@
 
 Aspectize.Extend("BootstrapSlider", {
 
-    Properties: { InitialValues: '0', V1: 0, V2: 0, MinValue: 0, MaxValue: 100, Step: 1, Orientation: 'horizontal', Enabled: true, Ticks: "", TickLabels: "", Tooltip:'show' },
+    Properties: { InitialValues: '0', V1: 0, V2: 0, MinValue: 0, MaxValue: 100, Step: 1, Orientation: 'horizontal', Enabled: true, Ticks: '', TickLabels: '', Tooltip:'show' },
     Events: ['OnV1Changed', 'OnV2Changed'],
     Init: function (elem) {
 
