@@ -3,54 +3,66 @@
 
 Aspectize.Extend("BootstrapSlider", {
 
-    Properties: { V1: 0, V2: 0, MinValue: 0, MaxValue: 100, Step: 1, Orientation: 'horizontal', Enabled: true, Ticks: "", TickLabels: "" },
+    Properties: { InitialValues: '0', V1: 0, V2: 0, MinValue: 0, MaxValue: 100, Step: 1, Orientation: 'horizontal', Enabled: true, Ticks: "", TickLabels: "" },
     Events: ['OnV1Changed', 'OnV2Changed'],
     Init: function (elem) {
 
         var optionMap = { MinValue: 'min', MaxValue: 'max', Step: 'step', Orientation: 'orientation' };
         var theSlider = null;
-        var rxSingle = /^\s*\d+\s*$/;
-        var rxDouble = /\[\s*(\d+\s*,\s*\d+)\s*\]/;
 
         var hasTwoValues = false;
+        var initialBinding = true;
 
         function buildNewSlider() {
+
+            function getInitialValues() {
+
+                var values = null;
+
+                if (initialBinding) {
+
+                    var initialValues = Aspectize.UiExtensions.GetProperty(elem, 'InitialValues');
+                    var sValues = initialValues.split(',');
+
+                    hasTwoValues = (sValues.length === 2);
+
+                    var v1 = Number(sValues[0]);
+                    var v2 = hasTwoValues ? Number(sValues[1]) : 0;
+
+                    if (isNaN(v1) || isNaN(v2) || sValues.length > 2) {
+
+                        Aspectize.Throw(elem.id + ' BootstrapSlider : InitialValues can only be set to a comma seperated string of one or two numbers ! You have : "' + initialValues + '".');
+                    }
+
+                    values = [v1];
+                    if (hasTwoValues) values.push(v2);
+
+                } else {
+
+                    values = [Aspectize.UiExtensions.GetProperty(elem, 'V1')];
+                    if (hasTwoValues) values.push(Aspectize.UiExtensions.GetProperty(elem, 'V2'));
+                }
+
+                return values;
+            }
 
             if (theSlider) theSlider.destroy();
 
             var value = 0;
 
-            if (elem.hasAttribute('aas-initial-value')) {
+            var values = getInitialValues();
 
-                var initialValue = elem.getAttribute('aas-initial-value').trim();
+            if (values) {
 
-                if (rxSingle.test(initialValue)) {
+                value = hasTwoValues ? values : values[0];
 
-                    value = Number(initialValue);
+                Aspectize.UiExtensions.ChangeProperty(elem, 'V1', values[0]);
+                Aspectize.UiExtensions.Notify(elem, 'OnV1Changed', values[0]);
 
-                    Aspectize.UiExtensions.ChangeProperty(elem, 'V1', value);
-                    Aspectize.UiExtensions.Notify(elem, 'OnV1Changed', value);
+                if (hasTwoValues) {
 
-                } else {
-
-                    var m = rxDouble.exec(initialValue);
-
-                    if (m) {
-
-                        var values = m[1].split(',');
-
-                        if (values.length === 2) {
-
-                            hasTwoValues = true;
-                            value = [Number(values[0].trim()), Number(values[1].trim())];
-
-                            Aspectize.UiExtensions.ChangeProperty(elem, 'V1', value[0]);
-                            Aspectize.UiExtensions.Notify(elem, 'OnV1Changed', value[0]);
-
-                            Aspectize.UiExtensions.ChangeProperty(elem, 'V2', value[1]);
-                            Aspectize.UiExtensions.Notify(elem, 'OnV2Changed', value[1]);
-                        }
-                    }
+                    Aspectize.UiExtensions.ChangeProperty(elem, 'V2', values[1]);
+                    Aspectize.UiExtensions.Notify(elem, 'OnV2Changed', values[1]);
                 }
             }
 
@@ -121,7 +133,7 @@ Aspectize.Extend("BootstrapSlider", {
             var refresh = false;
             var currentOptions = theSlider.getAttribute();
 
-            if (arg.Ticks || arg.TickLabels) {
+            if (arg.Ticks || arg.TickLabels || arg.InitialValues) {
 
                 buildNewSlider();
 
@@ -131,7 +143,21 @@ Aspectize.Extend("BootstrapSlider", {
 
                     switch (p) {
 
-                        case 'V1': theSlider.setValue(arg.V1); break;
+                        case 'V1': {
+
+                            if (hasTwoValues) {
+
+                                theSlider.setValue([arg.V1, Aspectize.UiExtensions.GetProperty(elem, 'V2')]);
+
+                            } else theSlider.setValue(arg.V1);
+
+                        } break;
+
+                        case 'V2': {
+
+                            theSlider.setValue([Aspectize.UiExtensions.GetProperty(elem, 'V1'), arg.V2]);
+
+                        } break;
 
                         case 'Enabled': {
 
@@ -158,9 +184,13 @@ Aspectize.Extend("BootstrapSlider", {
                 }
             }
 
+            initialBinding = false;
+
             if (refresh) theSlider.refresh();
 
         });
 
     }
 });
+
+
